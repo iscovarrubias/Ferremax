@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Inicio | Ferremax</title>
+  <link rel="stylesheet" href="estilos.css">
+  <link rel="icon" href="img/logo.png" type="image/x-icon" />
+  <style>
+    nav {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+    }
+    #login-area a, #login-area button {
+      background: none;
+      border: none;
+      color: white;
+      cursor: pointer;
+      font-size: 1em;
+      text-decoration: underline;
+      padding: 0;
+    }
+  </style>
+</head>
+<body>
+<header>
+  <div class="header-left">
+    <img src="img/logo.png" alt="Logo" class="logo">
+    <a href="index.html">Inicio</a>
+    <div class="buscador">
+      <input type="text" placeholder="¿Qué estás buscando?">
+    </div>
+  </div>
+  
+  <div class="header-right">
+    <a href="carrito.html">Carrito</a>
+    <span id="login-area"></span>
+  </div>
+</header>
+
+<main>
+  <h2>Productos</h2>
+  <div id="productos-container" class="grid-productos"></div>
+</main>
+
+<footer style="display: flex; align-items: center; justify-content: space-between; padding: 20px; border-top: 1px solid #ccc; font-family: Arial, sans-serif;">
+  <div style="display: flex; align-items: center; gap: 20px;">
+    <iframe 
+      src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d849558.256416842!2d-71.28931625744376!3d-33.71963576514433!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x9662c5c33b4d4ecd%3A0xa4de1886d8c2ebfa!2sFerremax!5e0!3m2!1ses!2scl!4v1748303172917!5m2!1ses!2scl" 
+      width="300" 
+      height="200" 
+      style="border:0; border-radius: 15px;" 
+      allowfullscreen="" 
+      loading="lazy" 
+      referrerpolicy="no-referrer-when-downgrade">
+    </iframe>
+  </div>
+
+  <div style="text-align: right; font-size: 14px; max-width: 250px;">
+    <h3 style="margin-top: 0; margin-bottom: 10px;">Contacto</h3>
+    <p style="margin: 2px 0;"><strong>Teléfono:</strong> +56 9 1234 5678</p>
+    <p style="margin: 2px 0;"><strong>Dirección:</strong> Ñuble 1034, Oficina 203, Santiago, Región Metropolitana</p>
+    <p style="margin: 2px 0;"><strong>Email:</strong> contacto@ferremax.cl</p>
+    <p style="margin: 0; font-weight: bold;">&copy; 2025 FERREMAX</p>
+  </div>
+</footer>
+
+<script>
+  fetch('http://localhost:3000/api/productos')
+    .then(res => res.json())
+    .then(data => {
+      const productos = (Array.isArray(data) ? data : data.datos || []).map(prod => {
+        const prodMin = {};
+        for (let clave in prod) {
+          prodMin[clave.toLowerCase()] = prod[clave];
+        }
+        return prodMin;
+      });
+
+      const container = document.getElementById('productos-container');
+      productos.forEach(prod => {
+        const div = document.createElement('div');
+        div.className = 'producto';
+
+        div.innerHTML = `
+          <h2>${prod.nombre}</h2>
+          <p><strong>Descripción:</strong> ${prod.descripcion}</p>
+          <p><strong>Precio:</strong> $${prod.precio}</p>
+          <p><strong>Stock:</strong> ${prod.stock}</p>
+          <p><strong>Categoría:</strong> ${prod.categoria}</p>
+          <button data-id="${prod.id_producto}">Agregar al carrito</button>
+        `;
+
+        const boton = div.querySelector('button');
+        boton.addEventListener('click', () => {
+          agregarAlCarrito(prod.id_producto);
+        });
+
+        container.appendChild(div);
+      });
+    })
+    .catch(err => {
+      console.error('Error al obtener productos:', err);
+    });
+
+  function agregarAlCarrito(id) {
+    let carrito = JSON.parse(localStorage.getItem('carrito')) || [];
+
+    const existe = carrito.find(prod => prod.id === id);
+
+    if (!existe) {
+      carrito.push({ id, cantidad: 1 });
+    } else {
+      existe.cantidad += 1;
+    }
+
+    localStorage.setItem('carrito', JSON.stringify(carrito));
+    alert(`Producto ${id} agregado al carrito.`);
+  }
+
+  const loginArea = document.getElementById('login-area');
+  const usuario = localStorage.getItem('usuarioLogueado');
+
+  if (usuario && usuario !== "null" && usuario !== "undefined" && usuario.trim() !== "") {
+    loginArea.innerHTML = `<button onclick="cerrarSesion()">Cerrar sesión</button>`;
+  } else {
+    loginArea.innerHTML = `<a href="login.html">Iniciar sesión</a>`;
+  }
+
+  function cerrarSesion() {
+    localStorage.removeItem('usuarioLogueado');
+    alert('Sesión cerrada');
+    window.location.href = 'index.html';
+  }
+
+  const images = document.querySelectorAll('#carrusel img');
+  let index = 0;
+
+  document.getElementById('next').addEventListener('click', () => {
+    images[index].classList.remove('active');
+    index = (index + 1) % images.length;
+    images[index].classList.add('active');
+  });
+
+  document.getElementById('prev').addEventListener('click', () => {
+    images[index].classList.remove('active');
+    index = (index - 1 + images.length) % images.length;
+    images[index].classList.add('active');
+  });
+</script>
+</body>
+</html>
