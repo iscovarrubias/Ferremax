@@ -2,11 +2,45 @@ const express = require('express');
 const axios = require('axios');
 const router = express.Router();
 
-//CREDENCIALES 
+// CREDENCIALES
 const COMMERCE_CODE = '597055555532'; 
 const API_KEY = '579B532A7440BB0C9079DED94D31EA1615BACEB56610332264630D42D0A36B1C'; 
 const BASE_URL = 'https://webpay3gint.transbank.cl/rswebpaytransaction/api/webpay/v1.2';
 
+/**
+ * @swagger
+ * /webpay/pagar:
+ *   post:
+ *     summary: Inicia una transacción de pago con Webpay
+ *     tags: [Webpay]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               monto:
+ *                 type: number
+ *                 example: 10000
+ *               orden:
+ *                 type: string
+ *                 example: "ORDEN123"
+ *     responses:
+ *       200:
+ *         description: URL y token para continuar con el pago
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 url:
+ *                   type: string
+ *                 token:
+ *                   type: string
+ *       500:
+ *         description: Error al iniciar la transacción
+ */
 router.post('/pagar', async (req, res) => {
   const { monto, orden } = req.body;
 
@@ -34,6 +68,27 @@ router.post('/pagar', async (req, res) => {
   }
 });
 
+/**
+ * @swagger
+ * /webpay/respuesta:
+ *   post:
+ *     summary: Confirma una transacción de Webpay
+ *     tags: [Webpay]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/x-www-form-urlencoded:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               token_ws:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Transacción confirmada
+ *       500:
+ *         description: Error al confirmar el pago
+ */
 router.post('/respuesta', async (req, res) => {
   const token = req.body.token_ws;
 
@@ -53,6 +108,29 @@ router.post('/respuesta', async (req, res) => {
   }
 });
 
+/**
+ * @swagger
+ * /webpay/respuesta:
+ *   get:
+ *     summary: Muestra mensaje cuando el usuario cancela la transacción
+ *     tags: [Webpay]
+ *     parameters:
+ *       - in: query
+ *         name: TBK_TOKEN
+ *         schema:
+ *           type: string
+ *       - in: query
+ *         name: TBK_ORDEN_COMPRA
+ *         schema:
+ *           type: string
+ *       - in: query
+ *         name: TBK_ID_SESION
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Mensaje de transacción cancelada
+ */
 router.get('/respuesta', (req, res) => {
   const { TBK_TOKEN, TBK_ORDEN_COMPRA, TBK_ID_SESION } = req.query;
 
