@@ -31,7 +31,6 @@ async function renderizarCarrito() {
       const producto = data;
       console.log("Producto cargado:", producto);
 
-     
       const prod = {};
       for (const key in producto) {
         prod[key.toLowerCase()] = producto[key];
@@ -86,12 +85,31 @@ function configurarPagoWebpay() {
   const botonPagar = document.getElementById('pagar-btn');
   if (!botonPagar) return;
 
-  botonPagar.addEventListener('click', () => {
+  botonPagar.addEventListener('click', async () => {
     const carrito = JSON.parse(localStorage.getItem('carrito')) || [];
+    if (carrito.length === 0) {
+      alert('El carrito está vacío o no hay monto válido para pagar.');
+      return;
+    }
+
     let monto = 0;
 
     for (const prod of carrito) {
-      monto += (prod.precio || 0) * (prod.cantidad || 1);
+      try {
+        const res = await fetch(`http://localhost:3000/api/productos/${prod.id}`);
+        if (!res.ok) continue;
+
+        const data = await res.json();
+
+        const producto = {};
+        for (const key in data) {
+          producto[key.toLowerCase()] = data[key];
+        }
+
+        monto += (producto.precio || 0) * (prod.cantidad || 1);
+      } catch (error) {
+        console.error('Error obteniendo producto para pago:', error);
+      }
     }
 
     if (monto <= 0) {
