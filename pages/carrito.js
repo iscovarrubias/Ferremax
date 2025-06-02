@@ -138,7 +138,7 @@ function configurarPagoWebpay() {
 
         form.appendChild(input);
         document.body.appendChild(form);
-        form.submit(); // Redirige automáticamente
+        form.submit(); 
       })
       .catch(error => {
         console.error('Error al iniciar pago con Webpay:', error);

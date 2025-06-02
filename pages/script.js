@@ -47,10 +47,8 @@ function cargarProductos() {
     });
 }
 
-// Cargar productos al iniciar
 cargarProductos();
 
-// Manejar formulario de agregar producto
 if (form) {
   form.addEventListener('submit', async (e) => {
     e.preventDefault();

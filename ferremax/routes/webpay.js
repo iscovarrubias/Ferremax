@@ -29,17 +29,6 @@ const BASE_URL = 'https://webpay3gint.transbank.cl/rswebpaytransaction/api/webpa
  *     responses:
  *       200:
  *         description: URL y token para continuar con el pago
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 url:
- *                   type: string
- *                 token:
- *                   type: string
- *       500:
- *         description: Error al iniciar la transacción
  */
 router.post('/pagar', async (req, res) => {
   const { monto, orden } = req.body;
@@ -57,6 +46,9 @@ router.post('/pagar', async (req, res) => {
         'Content-Type': 'application/json'
       }
     });
+
+    console.log('URL de pago:', response.data.url);
+    console.log('Token:', response.data.token);
 
     res.json({
       url: response.data.url,
@@ -112,43 +104,59 @@ router.post('/respuesta', async (req, res) => {
  * @swagger
  * /webpay/respuesta:
  *   get:
- *     summary: Muestra mensaje cuando el usuario cancela la transacción
+ *     summary: Maneja la respuesta de Webpay tras redirigir al usuario
  *     tags: [Webpay]
  *     parameters:
+ *       - in: query
+ *         name: token_ws
+ *         schema:
+ *           type: string
  *       - in: query
  *         name: TBK_TOKEN
  *         schema:
  *           type: string
- *       - in: query
- *         name: TBK_ORDEN_COMPRA
- *         schema:
- *           type: string
- *       - in: query
- *         name: TBK_ID_SESION
- *         schema:
- *           type: string
  *     responses:
  *       200:
- *         description: Mensaje de transacción cancelada
+ *         description: Resultado del pago
  */
-router.get('/respuesta', (req, res) => {
-  const { TBK_TOKEN, TBK_ORDEN_COMPRA, TBK_ID_SESION } = req.query;
+router.get('/respuesta', async (req, res) => {
+  const { token_ws, TBK_TOKEN } = req.query;
 
-  console.log('Compra anulada por el usuario');
-  console.log('Token:', TBK_TOKEN);
-  console.log('Orden:', TBK_ORDEN_COMPRA);
-  console.log('Sesión:', TBK_ID_SESION);
+  if (TBK_TOKEN) {
+    console.log('Compra anulada por el usuario');
+    return res.send(`
+      <h1>Compra anulada</h1>
+      <p>La transacción fue cancelada por el usuario.</p>
+      <p>Serás redirigido al carrito en 5 segundos...</p>
+      <script>
+        setTimeout(() => {
+          window.location.href = "/carrito.html";
+        }, 5000);
+      </script>
+    `);
+  }
 
-  res.send(`
-    <h1>Compra anulada</h1>
-    <p>La transacción fue cancelada por el usuario.</p>
-    <p>Serás redirigido al carrito en 5 segundos...</p>
-    <script>
-      setTimeout(() => {
-        window.location.href = "/carrito.html";
-      }, 5000);
-    </script>
-  `);
+  if (token_ws) {
+    try {
+      const response = await axios.put(`${BASE_URL}/transactions/${token_ws}`, {}, {
+        headers: {
+          'Tbk-Api-Key-Id': COMMERCE_CODE,
+          'Tbk-Api-Key-Secret': API_KEY,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      return res.send(`
+        <h1>Pago Exitoso</h1>
+        <pre>${JSON.stringify(response.data, null, 2)}</pre>
+      `);
+    } catch (error) {
+      console.error('Error al confirmar transacción:', error.response?.data || error.message);
+      return res.status(500).send('Error al confirmar el pago');
+    }
+  }
+
+  res.status(400).send('Parámetros inválidos en la respuesta');
 });
 
 module.exports = router;

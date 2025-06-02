@@ -25,7 +25,6 @@ exports.getAllUsuarios = async (req, res) => {
 };
 
 
-// Registrar usuario
 exports.createUsuario = async (req, res) => {
   console.log('Datos recibidos en backend:', req.body);
 
@@ -52,7 +51,7 @@ exports.createUsuario = async (req, res) => {
       return res.status(409).json({ error: 'El usuario ya existe' });
     }
 
-    // Insertar el usuario
+
     await connection.execute(
       `INSERT INTO USUARIOS (NOMBRE, CORREO, CONTRASEÑA, ROL, FECHA_CREACION)
        VALUES (:nombre, :correo, :contrasena, :rol, SYSTIMESTAMP)`,
@@ -70,7 +69,7 @@ exports.createUsuario = async (req, res) => {
   }
 };
 
-// Iniciar sesión
+
 exports.loginUsuario = async (req, res) => {
   const { correo, contrasena } = req.body;
 

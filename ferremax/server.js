@@ -3,12 +3,12 @@ const cors = require('cors');
 const path = require('path');
 const router = express.Router();
 
-const productRoutes = require('./routes/productroutes'); // Rutas de productos
-const userRoutes = require('./routes/productuser');       // Rutas de usuarios
+const productRoutes = require('./routes/productroutes');
+const userRoutes = require('./routes/productuser');       
 const webpayRoutes = require('./routes/webpay');
 
 // Swagger
-const { swaggerUi, swaggerSpec } = require('./config/swagger'); // Swagger desde carpeta config
+const { swaggerUi, swaggerSpec } = require('./config/swagger'); 
 
 const app = express();
 const PORT = process.env.PORT || 3000;
